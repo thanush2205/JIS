@@ -7,9 +7,11 @@ import ViewCaseDetails from "../components/judgeActions/ViewCaseDetails";
 import AssignLawyer from "../components/judgeActions/AssignLawyer";
 import ScheduleHearing from "../components/judgeActions/ScheduleHearing";
 import ReviewEvidence from "../components/judgeActions/ReviewEvidence";
+import MyAssignedCases from "../components/judgeActions/MyAssignedCases";
 import DeliverJudgement from "../components/judgeActions/DeliverJudgement";
 
 const ACTIONS = [
+  "My Assigned Cases", // default first
   "View Case Details",
   "Assign Lawyer",
   "Schedule Hearing",
@@ -18,12 +20,15 @@ const ACTIONS = [
 ];
 
 export default function Judge() {
-  const [active, setActive] = useState(ACTIONS[0]);
+  // Default to My Assigned Cases
+  const [active, setActive] = useState("My Assigned Cases");
 
   const renderContent = () => {
     switch (active) {
       case "View Case Details":
         return <ViewCaseDetails />;
+      case "My Assigned Cases":
+        return <MyAssignedCases />;
       case "Assign Lawyer":
         return <AssignLawyer />;
       case "Schedule Hearing":

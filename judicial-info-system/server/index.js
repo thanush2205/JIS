@@ -3,6 +3,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import morgan from 'morgan';
+console.log('[startup] Starting Judicial Info System server...');
 
 import caseRoutes from './routes/cases.js';
 import userRoutes from './routes/users.js';
@@ -62,15 +63,52 @@ function listRoutes() {
 }
 
 const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI;
+const PRIMARY_URI = process.env.MONGODB_URI;
+const FALLBACK_URI = process.env.MONGODB_URI_FALLBACK || process.env.MONGODB_URI_LOCAL;
 
-if (!MONGODB_URI) {
+if (!PRIMARY_URI && !FALLBACK_URI) {
   console.error('Missing MONGODB_URI in environment');
   process.exit(1);
 }
 
-mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 8000 }).then(() => {
-  console.log('MongoDB connected');
+async function connectMongo() {
+  const uris = [PRIMARY_URI, FALLBACK_URI].filter(Boolean);
+  let lastErr;
+  for (const uri of uris) {
+    try {
+      console.log(`[mongo] Trying URI: ${uri}`);
+      await mongoose.connect(uri, { serverSelectionTimeoutMS: 8000 });
+      console.log(`MongoDB connected (${uri.includes('mongodb+srv://') ? 'SRV' : 'direct'})`);
+      return true;
+    } catch (err) {
+      lastErr = err;
+      const msg = err?.message || String(err);
+      if (msg.includes('querySrv') || msg.includes('ENOTFOUND') || msg.includes('_mongodb._tcp')) {
+        console.error('[mongo] DNS SRV lookup failed for Atlas URI. If you are using MongoDB Atlas:');
+        console.error(' - Allow your IP in Atlas Network Access (or temporarily 0.0.0.0/0 for dev).');
+        console.error(' - Ensure DNS can resolve SRV records: _mongodb._tcp.<cluster>.mongodb.net');
+        console.error(' - Or set MONGODB_URI_FALLBACK to a direct URI (e.g., mongodb://127.0.0.1:27017/jis).');
+      }
+      console.error(`[mongo] Failed URI: ${uri.replace(/:[^@]*@/, ':***@')} -> ${msg}`);
+    }
+  }
+  // Attempt in-memory fallback if available
+  try {
+    console.log('[mongo] Attempting in-memory server fallback...');
+    const { MongoMemoryServer } = await import('mongodb-memory-server');
+    const mem = await MongoMemoryServer.create();
+    const uri = mem.getUri('jis');
+    await mongoose.connect(uri);
+    console.log('[mongo] Connected to in-memory MongoDB');
+    return true;
+  } catch (e) {
+    console.error('[mongo] In-memory fallback failed:', e.message);
+    if (lastErr) throw lastErr;
+    throw e;
+  }
+}
+
+connectMongo().then(() => {
   listRoutes();
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }).catch(err => {

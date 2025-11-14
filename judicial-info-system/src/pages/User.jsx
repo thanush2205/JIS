@@ -6,8 +6,7 @@ import ProfileSummary from "../components/ProfileSummary";
 import ViewCaseStatus from "../components/userActions/ViewCaseStatus";
 import DownloadCaseReports from "../components/userActions/DownloadCaseReports";
 import SubmitRequest from "../components/userActions/SubmitRequest";
-import ContactLawyer from "../components/userActions/ContactLawyer";
-import RequestCaseDetails from "../components/userActions/RequestCaseDetails";
+import ApprovedCaseDetails from "../components/userActions/ApprovedCaseDetails";
 import BookLawyer from "../components/userActions/BookLawyer";
 
 const ACTIONS = [
@@ -15,8 +14,7 @@ const ACTIONS = [
   "Download Case Reports",
   "Book a Lawyer",
   "Submit Request",
-  "Contact Lawyer",
-  "Request Case Details",
+  "Approved Case Details",
 ];
 
 const ACTION_COMPONENTS = {
@@ -24,8 +22,7 @@ const ACTION_COMPONENTS = {
   "Download Case Reports": DownloadCaseReports,
   "Book a Lawyer": BookLawyer,
   "Submit Request": SubmitRequest,
-  "Contact Lawyer": ContactLawyer,
-  "Request Case Details": RequestCaseDetails,
+  "Approved Case Details": ApprovedCaseDetails,
 };
 
 export default function User() {

@@ -1,6 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { ensureJwtSecret, getJwtSecret } from '../utils/secrets.js';
 import User from '../models/User.js';
 import { verifyToken } from '../middleware/auth.js';
 import Activity from '../models/Activity.js';
@@ -40,7 +41,8 @@ router.post('/login', async (req, res) => {
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
-    const token = jwt.sign({ sub: user.id, role: user.role }, process.env.JWT_SECRET || 'devsecret', { expiresIn: '6h' });
+  ensureJwtSecret();
+  const token = jwt.sign({ sub: user.id, role: user.role }, getJwtSecret(), { expiresIn: '6h' });
   res.json({ token, id: user.id, role: user.role, fullName: user.fullName, email: user.email });
   try { await Activity.create({ actorId: user.id, actorRole: user.role, action: 'USER_LOGIN', targetType: 'User', targetId: user.id }); } catch {}
   } catch (err) {

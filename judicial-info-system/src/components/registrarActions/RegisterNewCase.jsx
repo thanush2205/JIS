@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 export default function RegisterNewCase() {
   const [caseTitle, setCaseTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [accused, setAccused] = useState("");
 
   const { refresh } = useCases();
   const { user } = useAuth();
@@ -16,9 +17,10 @@ export default function RegisterNewCase() {
     if (!caseTitle) return;
     try {
       setLoading(true); setMsg("");
-  const created = await CasesAPI.create({ title: caseTitle, type: 'Pending', court: '', judge: '', lawyer: '', accused: [], description, registeredBy: user?.id });
+      const accusedList = accused.split(',').map(a => a.trim()).filter(Boolean);
+      const created = await CasesAPI.create({ title: caseTitle, type: 'Pending', court: '', judge: '', lawyer: '', accused: accusedList, description, registeredBy: user?.id });
       setMsg(`Registered case ${created.id}`);
-      setCaseTitle(""); setDescription("");
+      setCaseTitle(""); setDescription(""); setAccused("");
       refresh();
     } catch (e) {
       setMsg(e.message);
@@ -41,6 +43,13 @@ export default function RegisterNewCase() {
         onChange={(e) => setDescription(e.target.value)}
         rows={4}
         style={{ width: "100%" }}
+      />
+      <input
+        type="text"
+        placeholder="Accused Names (comma separated)"
+        value={accused}
+        onChange={(e) => setAccused(e.target.value)}
+        style={{ width: "100%", marginTop: 6 }}
       />
   <button onClick={handleRegister} style={{ marginTop: "10px" }} disabled={loading}>{loading ? 'Registering...' : 'Register'}</button>
   {msg && <div style={{ marginTop: '6px', color: '#0d6b0d' }}>{msg}</div>}

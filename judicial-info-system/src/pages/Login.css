@@ -55,7 +55,7 @@ body {
   }
   
   /* Buttons */
-  .login-container button {
+  .login-container button[type="submit"] {
     background-color: #b30000;
     color: white;
     border: none;
@@ -67,7 +67,7 @@ body {
     transition: background 0.3s, box-shadow 0.3s;
   }
   
-  .login-container button:hover {
+  .login-container button[type="submit"]:hover {
     background-color: #e00000;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
   }

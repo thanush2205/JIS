@@ -23,13 +23,27 @@ const RequestSchema = new mongoose.Schema({
   at: String,
 }, { _id: false });
 
+const RequestDecisionSchema = new mongoose.Schema({
+  userId: String, // requester
+  caseId: String,
+  request: String,
+  submittedAt: String,
+  decision: { type: String, enum: ['approved','declined','pending'], default: 'pending' },
+  decidedAt: String,
+  decidedBy: String, // registrar id
+  note: String,
+}, { _id: false });
+
 const CaseSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   title: String,
   type: String,
   court: String,
-  judge: String,
+  // Judge fields
+  judge: String, // legacy display name
+  judgeId: { type: String }, // new explicit judge ID for filtering
   lawyer: String,
+  lawyerId: { type: String }, // explicit lawyer ID for filtering like judgeId
   status: String,
   judgement: { type: String, default: '' },
   description: { type: String, default: '' },
@@ -40,6 +54,7 @@ const CaseSchema = new mongoose.Schema({
   reports: { type: [String], default: [] },
   documents: { type: [Object], default: [] },
   requests: { type: [RequestSchema], default: [] },
+  requestApprovals: { type: [RequestDecisionSchema], default: [] },
   messages: { type: [MessageSchema], default: [] },
   schedules: { type: [ScheduleSchema], default: [] },
 });

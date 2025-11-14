@@ -1,6 +1,7 @@
 import express from 'express';
 import Case from '../models/Case.js';
 import Activity from '../models/Activity.js';
+import { verifyToken, requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -8,6 +9,69 @@ const router = express.Router();
 router.get('/', async (_req, res) => {
   const cases = await Case.find();
   res.json(cases);
+});
+
+// IMPORTANT: define specific 'requests' routes BEFORE the param ':id' matcher
+// Registrar: list all request proposals (flatten across cases)
+router.get('/requests', async (_req, res) => {
+  const cases = await Case.find({}, { id: 1, requestApprovals: 1, title: 1 });
+  const items = [];
+  for (const c of cases) {
+    (c.requestApprovals || []).forEach((r, idx) => items.push({
+      caseId: c.id,
+      title: c.title,
+      index: idx,
+      ...r.toObject?.() || r,
+    }));
+  }
+  // latest first
+  items.sort((a,b) => String(b.submittedAt||'').localeCompare(String(a.submittedAt||'')));
+  res.json(items);
+});
+
+// User: list my request proposals (filter by decision)
+router.get('/requests/mine', verifyToken, requireAuth, async (req, res) => {
+  try {
+    console.log('[debug] /api/cases/requests/mine hit');
+    const userId = req.auth?.sub;
+    const decision = (req.query.decision || '').toLowerCase();
+    const valid = new Set(['pending','approved','declined','']);
+    if (!valid.has(decision)) return res.status(400).json({ error: 'Invalid decision filter' });
+    const cases = await Case.find({}, { id: 1, title: 1, type: 1, court: 1, judge: 1, lawyer: 1, status: 1, description: 1, accused: 1, hearingDates: 1, evidence: 1, reports: 1, judgement: 1, requestApprovals: 1 });
+    const items = [];
+    for (const c of cases) {
+      (c.requestApprovals || []).forEach((r, idx) => {
+        const R = r.toObject?.() || r;
+        if (R.userId === userId && (!decision || R.decision === decision)) {
+          items.push({
+            caseId: c.id,
+            title: c.title,
+            type: c.type,
+            court: c.court,
+            judge: c.judge,
+            lawyer: c.lawyer,
+            status: c.status,
+            description: c.description,
+            accused: c.accused,
+            hearingDates: c.hearingDates,
+            evidenceCount: (c.evidence||[]).length,
+            reportsCount: (c.reports||[]).length,
+            hasJudgement: Boolean(c.judgement),
+            request: R.request,
+            decision: R.decision,
+            submittedAt: R.submittedAt,
+            decidedAt: R.decidedAt,
+            decidedBy: R.decidedBy || null,
+            index: idx,
+          });
+        }
+      });
+    }
+    items.sort((a,b) => String(b.submittedAt||'').localeCompare(String(a.submittedAt||'')));
+    res.json(items);
+  } catch (e) {
+    res.status(500).json({ error: e.message || 'Failed to load' });
+  }
 });
 
 // Get single case by id
@@ -18,7 +82,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Register new case (Registrar or Police)
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, requireAuth, async (req, res) => {
   const { title, type, court, judge, lawyer, accused, description, registeredBy } = req.body;
   const nextIndex = await Case.countDocuments();
   const newId = `C${String(nextIndex + 1).padStart(3, '0')}`;
@@ -28,15 +92,17 @@ router.post('/', async (req, res) => {
 });
 
 // Update case
-router.patch('/:id', async (req, res) => {
-  const c = await Case.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+router.patch('/:id', verifyToken, requireAuth, async (req, res) => {
+  const update = { ...req.body };
+  const c = await Case.findOneAndUpdate({ id: req.params.id }, update, { new: true });
   if (!c) return res.status(404).json({ error: 'Case not found' });
-  await Activity.create({ actorId: req.body.updatedBy || 'Unknown', actorRole: req.body.updatedByRole || 'Registrar', action: 'CASE_UPDATE', targetType: 'Case', targetId: c.id, details: req.body });
+  const action = (update.judge || update.judgeId) ? 'JUDGE_ASSIGNED' : 'CASE_UPDATE';
+  await Activity.create({ actorId: update.updatedBy || 'Unknown', actorRole: update.updatedByRole || 'Registrar', action, targetType: 'Case', targetId: c.id, details: update });
   res.json(c);
 });
 
 // Assign lawyer
-router.post('/:id/assign-lawyer', async (req, res) => {
+router.post('/:id/assign-lawyer', verifyToken, requireAuth, async (req, res) => {
   const { lawyer } = req.body;
   const c = await Case.findOneAndUpdate({ id: req.params.id }, { lawyer }, { new: true });
   if (!c) return res.status(404).json({ error: 'Case not found' });
@@ -44,8 +110,34 @@ router.post('/:id/assign-lawyer', async (req, res) => {
   res.json(c);
 });
 
+// Assign lawyer with ID
+router.post('/:id/assign-lawyer-by-id', verifyToken, requireAuth, async (req, res) => {
+  const { lawyerId, lawyerName } = req.body || {};
+  if (!lawyerId && !lawyerName) return res.status(400).json({ error: 'lawyerId or lawyerName required' });
+  const c = await Case.findOne({ id: req.params.id });
+  if (!c) return res.status(404).json({ error: 'Case not found' });
+  if (lawyerName) c.lawyer = lawyerName;
+  if (lawyerId) c.lawyerId = lawyerId;
+  await c.save();
+  await Activity.create({ actorId: 'Judge', actorRole: 'Judge', action: 'LAWYER_ASSIGNED', targetType: 'Case', targetId: c.id, details: { lawyer: c.lawyer, lawyerId: c.lawyerId } });
+  res.json(c);
+});
+
+// Assign judge
+router.post('/:id/assign-judge', verifyToken, requireAuth, async (req, res) => {
+  const { judge, judgeId } = req.body || {};
+  if (!judge && !judgeId) return res.status(400).json({ error: 'judge or judgeId required' });
+  const c = await Case.findOne({ id: req.params.id });
+  if (!c) return res.status(404).json({ error: 'Case not found' });
+  if (judge) c.judge = judge;
+  if (judgeId) c.judgeId = judgeId;
+  await c.save();
+  await Activity.create({ actorId: 'Registrar', actorRole: 'Registrar', action: 'JUDGE_ASSIGNED', targetType: 'Case', targetId: c.id, details: { judge: c.judge, judgeId: c.judgeId } });
+  res.json(c);
+});
+
 // Schedule hearing
-router.post('/:id/hearings', async (req, res) => {
+router.post('/:id/hearings', verifyToken, requireAuth, async (req, res) => {
   const { date } = req.body;
   const c = await Case.findOne({ id: req.params.id });
   if (!c) return res.status(404).json({ error: 'Case not found' });
@@ -56,7 +148,7 @@ router.post('/:id/hearings', async (req, res) => {
 });
 
 // Upload / add evidence
-router.post('/:id/evidence', async (req, res) => {
+router.post('/:id/evidence', verifyToken, requireAuth, async (req, res) => {
   const { name } = req.body;
   const c = await Case.findOne({ id: req.params.id });
   if (!c) return res.status(404).json({ error: 'Case not found' });
@@ -68,7 +160,7 @@ router.post('/:id/evidence', async (req, res) => {
 });
 
 // Deliver judgement
-router.post('/:id/judgement', async (req, res) => {
+router.post('/:id/judgement', verifyToken, requireAuth, async (req, res) => {
   const { text } = req.body;
   const c = await Case.findOneAndUpdate({ id: req.params.id }, { judgement: text, status: 'Resolved' }, { new: true });
   if (!c) return res.status(404).json({ error: 'Case not found' });
@@ -77,7 +169,7 @@ router.post('/:id/judgement', async (req, res) => {
 });
 
 // Submit case report
-router.post('/:id/reports', async (req, res) => {
+router.post('/:id/reports', verifyToken, requireAuth, async (req, res) => {
   const { report } = req.body;
   const c = await Case.findOne({ id: req.params.id });
   if (!c) return res.status(404).json({ error: 'Case not found' });
@@ -136,7 +228,7 @@ router.get('/:id/download', async (req, res) => {
 });
 
 // Upload documents (bulk simulated)
-router.post('/:id/documents', async (req, res) => {
+router.post('/:id/documents', verifyToken, requireAuth, async (req, res) => {
   const { documents } = req.body; // expect array
   const c = await Case.findOne({ id: req.params.id });
   if (!c) return res.status(404).json({ error: 'Case not found' });
@@ -147,7 +239,7 @@ router.post('/:id/documents', async (req, res) => {
 });
 
 // Messages (communication)
-router.post('/:id/messages', async (req, res) => {
+router.post('/:id/messages', verifyToken, requireAuth, async (req, res) => {
   const { from, text } = req.body;
   const c = await Case.findOne({ id: req.params.id });
   if (!c) return res.status(404).json({ error: 'Case not found' });
@@ -159,19 +251,42 @@ router.post('/:id/messages', async (req, res) => {
 });
 
 // User request
-router.post('/:id/requests', async (req, res) => {
+router.post('/:id/requests', verifyToken, requireAuth, async (req, res) => {
   const { userId, request } = req.body;
   const c = await Case.findOne({ id: req.params.id });
   if (!c) return res.status(404).json({ error: 'Case not found' });
   const item = { userId, request, at: new Date().toISOString() };
   c.requests.push(item);
+  // mirror into approvals list as pending proposal
+  c.requestApprovals.push({ userId, caseId: c.id, request, submittedAt: item.at, decision: 'pending' });
   await c.save();
   await Activity.create({ actorId: userId || 'User', actorRole: 'User', action: 'REQUEST_SUBMITTED', targetType: 'Case', targetId: c.id, details: { request } });
   res.json(item);
 });
 
+// Registrar: list all request proposals (flatten across cases)
+
+
+// Registrar: decide on a specific request
+router.post('/:id/requests/:index/decision', verifyToken, requireAuth, async (req, res) => {
+  const { decision, note } = req.body;
+  if (!['approved','declined'].includes(decision)) return res.status(400).json({ error: 'Invalid decision' });
+  const c = await Case.findOne({ id: req.params.id });
+  if (!c) return res.status(404).json({ error: 'Case not found' });
+  const idx = Number(req.params.index);
+  if (Number.isNaN(idx) || idx < 0 || idx >= (c.requestApprovals||[]).length) return res.status(404).json({ error: 'Request not found' });
+  const entry = c.requestApprovals[idx];
+  entry.decision = decision;
+  entry.decidedAt = new Date().toISOString();
+  entry.decidedBy = req.auth?.sub || 'REG';
+  entry.note = note || '';
+  await c.save();
+  await Activity.create({ actorId: entry.decidedBy, actorRole: 'Registrar', action: decision === 'approved' ? 'REQUEST_APPROVED' : 'REQUEST_DECLINED', targetType: 'Case', targetId: c.id, details: { index: idx, note } });
+  res.json({ ok: true, decision: entry.decision, decidedAt: entry.decidedAt });
+});
+
 // Registrar schedule
-router.post('/:id/schedules', async (req, res) => {
+router.post('/:id/schedules', verifyToken, requireAuth, async (req, res) => {
   const { date, details } = req.body;
   const c = await Case.findOne({ id: req.params.id });
   if (!c) return res.status(404).json({ error: 'Case not found' });

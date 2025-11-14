@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { getJwtSecret, ensureJwtSecret } from '../utils/secrets.js';
 import User from '../models/User.js';
 
 export async function verifyToken(req, res, next) {
@@ -6,7 +7,9 @@ export async function verifyToken(req, res, next) {
     const auth = req.headers.authorization || '';
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
     if (!token) return res.status(401).json({ error: 'Missing token' });
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'devsecret');
+  // Ensure a secret exists (will generate and persist if missing)
+  ensureJwtSecret();
+  const decoded = jwt.verify(token, getJwtSecret());
     req.auth = decoded;
     if (decoded?.sub) {
       const user = await User.findOne({ id: decoded.sub });

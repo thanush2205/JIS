@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import "./Login.css";
 
@@ -12,6 +12,7 @@ export default function Login() {
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,6 +21,9 @@ export default function Login() {
     try {
       setLoading(true);
   const user = await login(emailOrId, password);
+  // Clear fields after success
+  setEmailOrId("");
+  setPassword("");
       const r = user.role?.toLowerCase();
       navigate(`/${r === 'user' ? 'user' : r}`);
     } catch (err) {
@@ -40,7 +44,7 @@ export default function Login() {
       <button type="button" onClick={() => navigate(-1)} style={backBtnStyle} aria-label="Go back">
         <ArrowLeft size={18} /> Back
       </button>
-      <form className="login-box" onSubmit={handleLogin}>
+  <form className="login-box" onSubmit={handleLogin} autoComplete="off">
         <h2>Login to Judiciary Information System</h2>
 
   <label>Email or Generated ID</label>
@@ -49,17 +53,30 @@ export default function Login() {
           value={emailOrId}
           onChange={(e) => setEmailOrId(e.target.value)}
           placeholder="Enter your Email or Generated ID"
+          autoComplete="off"
           required
         />
 
         <label>Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter Password"
-          required
-        />
+        <div style={{ position:'relative' }}>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter Password"
+            autoComplete="new-password"
+            required
+            style={{ width:'100%', paddingRight:42 }}
+          />
+          <button
+            type="button"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            onClick={() => setShowPassword(v => !v)}
+            style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', background:'transparent', border:'none', padding:6, cursor:'pointer', color:'#374151', zIndex:2 }}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
 
   {/* Role selection removed; role is determined server-side at login */}
 

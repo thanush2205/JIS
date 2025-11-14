@@ -8,6 +8,7 @@ import UpdateCaseInfo from "../components/registrarActions/UpdateCaseInfo";
 import ApproveCaseFiles from "../components/registrarActions/ApproveCaseFiles";
 import AssignCaseToJudge from "../components/registrarActions/AssignCaseToJudge";
 import ManageCourtSchedule from "../components/registrarActions/ManageCourtSchedule";
+import CaseDetailProposals from "../components/registrarActions/CaseDetailProposals";
 import ManageUsers from "../components/registrarActions/ManageUsers";
 import ActivityLog from "../components/registrarActions/ActivityLog";
 import ViewAllCases from "../components/registrarActions/ViewAllCases";
@@ -21,6 +22,7 @@ const ACTIONS = [
   "Manage Court Schedule",
   "Manage Users",
   "Activity Log",
+  "Case Detail Requests",
 ];
 
 export default function Registrar() {
@@ -44,6 +46,8 @@ export default function Registrar() {
         return <ManageUsers />;
       case "Activity Log":
         return <ActivityLog />;
+      case "Case Detail Requests":
+        return <CaseDetailProposals />;
       default:
         return <p>Select an action from the sidebar.</p>;
     }

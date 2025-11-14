@@ -48,14 +48,14 @@ export default function ActivityLog() {
         </div>
         {error && <div className="ja-error" style={{ marginTop:8 }}>{error}</div>}
         <div style={{ marginTop:12, overflowX:'auto', border:'1px solid #eee', borderRadius: 8 }}>
-          <table style={{ width:'100%', minWidth: 1200, borderCollapse:'separate', borderSpacing: 0, tableLayout:'auto' }}>
+          <table style={{ width:'100%', minWidth: 1600, borderCollapse:'separate', borderSpacing: 0, tableLayout:'auto' }}>
             <colgroup>
-              <col style={{ width: 200 }} />
-              <col style={{ width: 180 }} />
-              <col style={{ width: 140 }} />
-              <col style={{ width: 240 }} />
               <col style={{ width: 220 }} />
-              <col />
+              <col style={{ width: 220 }} />
+              <col style={{ width: 160 }} />
+              <col style={{ width: 300 }} />
+              <col style={{ width: 260 }} />
+              <col style={{ width: 600 }} />
             </colgroup>
             <thead>
               <tr style={{ background:'#f9fafb' }}>

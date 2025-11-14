@@ -2,18 +2,16 @@ import React, { useState } from "react";
 import Layout from "../components/Layout";
 import ProfileSummary from "../components/ProfileSummary";
 
-import ViewAssignedCases from "../components/lawyerActions/ViewAssignedCases";
+import MyAssignedCases from "../components/lawyerActions/MyAssignedCases";
 import SubmitCaseReport from "../components/lawyerActions/SubmitCaseReport";
 import UploadDocuments from "../components/lawyerActions/UploadDocuments";
 import ViewHearingSchedule from "../components/lawyerActions/ViewHearingSchedule";
-import CommunicateWithJudge from "../components/lawyerActions/CommunicateWithJudge";
 
 const ACTIONS = [
   "View Assigned Cases",
   "Submit Case Report",
   "Upload Documents",
   "View Hearing Schedule",
-  "Communicate with Judge",
 ];
 
 export default function Lawyer() {
@@ -22,15 +20,13 @@ export default function Lawyer() {
   const renderContent = () => {
     switch (active) {
       case "View Assigned Cases":
-        return <ViewAssignedCases />;
+  return <MyAssignedCases />;
       case "Submit Case Report":
         return <SubmitCaseReport />;
       case "Upload Documents":
         return <UploadDocuments />;
       case "View Hearing Schedule":
         return <ViewHearingSchedule />;
-      case "Communicate with Judge":
-        return <CommunicateWithJudge />;
       default:
         return <p>Select an action from the sidebar.</p>;
     }

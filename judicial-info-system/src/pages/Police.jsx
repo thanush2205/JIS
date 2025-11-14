@@ -4,14 +4,12 @@ import ProfileSummary from "../components/ProfileSummary";
 
 // Import the action components
 import SearchByCaseID from "../components/policeActions/SearchByCaseID";
-import SearchByAccusedName from "../components/policeActions/SearchByAccusedName";
 import SubmitEvidence from "../components/policeActions/SubmitEvidence";
 import RegisterFIR from "../components/policeActions/RegisterFIR";
 import ViewCaseStatus from "../components/policeActions/ViewCaseStatus";
 
 const ACTIONS = [
   "Search by Case ID",
-  "Search by Accused Name",
   "Submit Evidence",
   "Register FIR/Case",
   "View Case Status",
@@ -24,8 +22,6 @@ export default function Police() {
     switch (active) {
       case "Search by Case ID":
         return <SearchByCaseID />;
-      case "Search by Accused Name":
-        return <SearchByAccusedName />;
       case "Submit Evidence":
         return <SubmitEvidence />;
       case "Register FIR/Case":
