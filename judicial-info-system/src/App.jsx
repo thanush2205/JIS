@@ -94,14 +94,16 @@ export default function App() {
       <LandingNavbar />
       {/* HERO / CAROUSEL */}
       <section className="hero-section">
-        <div className="carousel-inner" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
+  <div className="carousel-inner" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
           {images.map((img, idx) => (
             <div className="carousel-item" key={idx}>
               <img className="carousel-img" src={img} alt={`slide-${idx}`} />
               <div className="carousel-caption">
-                <h1>{headlines[idx]}</h1>
-                <p>Empowering citizens through digital transformation and transparency.</p>
-                <a className="btn-cta" href="/signup">Get Started</a>
+    <h2 className="carousel-brand" aria-label="System name">Judicial Information System</h2>
+    <span className="carousel-slide-index" aria-label="Slide number">slide-{idx}</span>
+    <h1 className="carousel-headline">{headlines[idx]}</h1>
+    <p className="carousel-tagline">Empowering citizens through digital transformation and transparency.</p>
+    <a className="btn-cta" href="/signup" aria-label="Get Started">Get Started</a>
               </div>
             </div>
           ))}
