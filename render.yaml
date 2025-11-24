@@ -14,11 +14,12 @@ services:
         generateValue: true
       - key: CORS_ORIGIN
         value: https://jis-frontend.onrender.com
-  - type: static
+  - type: web
     name: jis-frontend
+    env: static
     rootDir: judicial-info-system
     buildCommand: npm install && npm run build
-    publishDir: dist
+    staticPublishPath: dist
     envVars:
       - key: VITE_API_BASE
         value: https://jis-backend.onrender.com/api
