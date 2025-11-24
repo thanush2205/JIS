@@ -21,10 +21,10 @@ body { background:var(--bg); color:#222; }
 .carousel-inner { display: flex; width: 300%; height: 100%; transition: transform 0.7s ease-in-out; }
 .carousel-item { flex: 0 0 100%; height: 100%; position: relative; }
 .carousel-img { width: 100%; height: 100%; object-fit: contain; background: #000; object-position: center; filter: brightness(.75); }
-.carousel-caption { position:absolute; left:8%; top:50%; transform:translateY(-50%); color:#fff; max-width:650px; text-shadow:0 8px 24px rgba(0,0,0,0.45); }
+.carousel-caption { position:absolute; left:8%; top:50%; transform:translateY(-50%); color:#fff; max-width:650px; text-shadow:0 8px 24px rgba(0,0,0,0.45); display:flex; flex-direction:column; align-items:flex-start; }
 .carousel-caption h1 { font-size:2.8rem; margin-bottom:8px; line-height:1.05; }
 .carousel-caption p { font-size:1.05rem; margin-bottom:14px; color:rgba(255,255,255,0.92); }
-.btn-cta { background:var(--red); color:#fff; padding:12px 24px; border-radius:8px; text-decoration:none; font-weight:700; box-shadow:0 6px 18px rgba(178,34,34,0.18); transition:transform .18s, background .18s; }
+.btn-cta { background:var(--red); color:#fff; padding:12px 24px; border-radius:8px; text-decoration:none; font-weight:700; box-shadow:0 6px 18px rgba(178,34,34,0.18); transition:transform .18s, background .18s; display:inline-block; }
 .btn-cta:hover { transform:translateY(-4px); background:var(--red-light); }
 
 /* ------------------------------
@@ -99,4 +99,4 @@ body { background:var(--bg); color:#222; }
    RESPONSIVE
 -------------------------------*/
 @media (max-width:1000px){ .cards { grid-template-columns:repeat(2,1fr); } .carousel-caption h1 { font-size:2.2rem; } }
-@media (max-width:640px){ .cards { grid-template-columns:1fr; padding:0 12px; } .carousel-caption { left:6%; right:6%; max-width:calc(100% - 48px); } .carousel-caption h1 { font-size:1.6rem; } .stat { min-width:140px; } .footer-top { padding: 10px 0; } }
+@media (max-width:640px){ .cards { grid-template-columns:1fr; padding:0 12px; } .carousel-caption { left:6%; right:6%; max-width:calc(100% - 48px); align-items:center; text-align:center; } .carousel-caption h1 { font-size:1.6rem; } .carousel-caption p { text-align:center; } .btn-cta { margin: 4px auto 0; } .stat { min-width:140px; } .footer-top { padding: 10px 0; } }

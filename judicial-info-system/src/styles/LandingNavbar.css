@@ -25,6 +25,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+  flex-wrap: nowrap;
   }
   
   .nav-btn {
@@ -36,10 +37,25 @@
     cursor: pointer;
     font-weight: 600;
     transition: 0.3s;
+  white-space: nowrap;
   }
   
   .nav-btn:hover {
     background: white;
     color: #b22222;
   }
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .landing-navbar { padding: 10px 16px; }
+  .logo h1 { font-size: 1.05rem; }
+  .nav-right { gap: 8px; }
+  .nav-btn { padding: 6px 10px; font-size: 0.75rem; }
+}
+@media (max-width: 520px) {
+  .landing-navbar { gap: 10px; }
+  .logo { flex: 1; }
+  .logo h1 { font-size: 0.9rem; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nav-right { flex: 0 0 auto; }
+  .nav-btn { padding: 5px 9px; font-size: 0.7rem; }
+}
   
