@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+  "start": "node server/index.js",
     "server": "bash -lc 'unset npm_config_prefix; export NVM_DIR=\"$HOME/.nvm\"; [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"; nvm use 20.19.0 >/dev/null 2>&1 || true; node server/index.js'",
     "seed": "node server/seed.js",
     "gen:jwt": "node server/scripts/generate-jwt-secret.js"
