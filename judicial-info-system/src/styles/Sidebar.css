@@ -9,6 +9,36 @@
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
+  transition: transform .35s ease, opacity .3s ease;
+}
+
+.sidebar.mobile {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  transform: translateX(-100%);
+  opacity: 0;
+  z-index: 1002;
+  border-right: 2px solid #e0e0e0;
+}
+.sidebar.mobile.open {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.sidebar-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #b22222;
 }
 
 /* ===== Sidebar Title ===== */
@@ -83,12 +113,7 @@
 
 /* ===== Responsive Design ===== */
 @media (max-width: 768px) {
-  .sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 2px solid #e0e0e0;
-    padding: 16px;
-  }
+  .sidebar:not(.mobile) { display: none; }
 
   .sidebar-title {
     text-align: center;

@@ -4,6 +4,7 @@
     height: 100vh;
     font-family: 'Poppins', sans-serif;
   }
+  .layout.menu-open { overflow: hidden; }
   
   .layout-body {
     display: flex;
@@ -17,4 +18,40 @@
     background: #fafafa;
     overflow-y: auto;
   }
+
+/* Burger button */
+.burger-btn {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: #b22222;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+.burger-line {
+  width: 22px;
+  height: 2.5px;
+  background: #fff;
+  border-radius: 2px;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+}
+
+@media (min-width: 900px) {
+  .burger-btn { display: none; }
+  .backdrop { display: none; }
+}
   
