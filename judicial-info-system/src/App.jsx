@@ -99,8 +99,6 @@ export default function App() {
             <div className="carousel-item" key={idx}>
               <img className="carousel-img" src={img} alt={`slide-${idx}`} />
               <div className="carousel-caption">
-    <h2 className="carousel-brand" aria-label="System name">Judicial Information System</h2>
-    <span className="carousel-slide-index" aria-label="Slide number">slide-{idx}</span>
     <h1 className="carousel-headline">{headlines[idx]}</h1>
     <p className="carousel-tagline">Empowering citizens through digital transformation and transparency.</p>
     <a className="btn-cta" href="/signup" aria-label="Get Started">Get Started</a>
