@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: jis-backend
+    env: node
+    rootDir: judicial-info-system
+    buildCommand: npm install
+    startCommand: node server/index.js
+    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: MONGODB_URI
+        value: YOUR_ATLAS_URI_HERE
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://jis-frontend.onrender.com
+  - type: static
+    name: jis-frontend
+    rootDir: judicial-info-system
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    envVars:
+      - key: VITE_API_BASE
+        value: https://jis-backend.onrender.com/api
