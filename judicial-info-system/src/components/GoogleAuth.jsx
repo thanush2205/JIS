@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { UsersAPI } from '../services/api';
 
-const GoogleAuth = ({ isSignup = false }) => {
+const GoogleAuth = ({ isSignup = false, role = 'User' }) => {
   const navigate = useNavigate();
   const buttonRef = useRef(null);
 
   const handleCredentialResponse = async (response) => {
     const idToken = response.credential;
     try {
-      const data = await UsersAPI.googleAuth(idToken);
+      const data = await UsersAPI.googleAuth(idToken, role);
       localStorage.setItem('auth', JSON.stringify({ token: data.token, user: data.user }));
       toast.success('Successfully logged in with Google!');
       

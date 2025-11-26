@@ -34,7 +34,7 @@ router.post('/signup', async (req, res) => {
 // Google Sign-In (Signup or Login)
 router.post('/auth/google', async (req, res) => {
   try {
-    const { idToken } = req.body;
+    const { idToken, role: requestedRole } = req.body;
     if (!idToken) return res.status(400).json({ error: 'ID token required' });
 
     // Verify the Google token
@@ -59,14 +59,15 @@ router.post('/auth/google', async (req, res) => {
       }
     } else {
       // New user - create account with Google details
-      const prefix = 'U'; // Default role is User
+      const role = requestedRole || 'User';
+      const prefix = role?.[0]?.toUpperCase() || 'U';
       const randomDigits = Math.floor(10000 + Math.random() * 90000);
       const id = `${prefix}${randomDigits}`;
       
       user = await User.create({
         fullName: name,
         email,
-        role: 'User',
+        role,
         bio: '',
         id,
         googleId,
@@ -76,7 +77,7 @@ router.post('/auth/google', async (req, res) => {
 
       await Activity.create({
         actorId: id,
-        actorRole: 'User',
+        actorRole: role,
         action: 'USER_SIGNUP_GOOGLE',
         targetType: 'User',
         targetId: user.id,

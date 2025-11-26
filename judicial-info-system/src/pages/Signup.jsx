@@ -120,8 +120,8 @@ export default function Signup() {
   {error && <div style={{ color: 'red' }}>{error}</div>}
   <button type="submit" disabled={loading}>{loading ? 'Signing up...' : 'Sign Up'}</button>
       </form>
-      <div className="separator">OR</div>
-      <GoogleAuth isSignup={true} />
+  <div className="separator">OR</div>
+  <GoogleAuth isSignup={true} role={formData.role} />
 
       {showModal && (
         <div className="modal">
