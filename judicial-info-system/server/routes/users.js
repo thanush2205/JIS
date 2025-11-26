@@ -51,12 +51,15 @@ router.post('/auth/google', async (req, res) => {
     let user = await User.findOne({ email });
 
     if (user) {
-      // User exists - update Google ID and profile picture if not already set
+      // Existing user: allow role update only if explicitly provided (e.g. from signup flow)
+      if (requestedRole) {
+        user.role = requestedRole;
+      }
       if (!user.googleId) {
         user.googleId = googleId;
-        user.profilePicture = picture;
-        await user.save();
       }
+      user.profilePicture = picture || user.profilePicture;
+      await user.save();
     } else {
       // New user - create account with Google details
       const role = requestedRole || 'User';
