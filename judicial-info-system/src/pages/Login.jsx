@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
+import GoogleAuth from '../components/GoogleAuth.jsx';
 import "./Login.css";
 
 export default function Login() {
@@ -83,6 +84,8 @@ export default function Login() {
   {error && <div style={{ color: 'red', marginBottom: '8px' }}>{error}</div>}
   <button type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
       </form>
+      <div className="separator">OR</div>
+      <GoogleAuth />
       <div style={{ marginTop: '12px', fontSize: '14px', textAlign: 'center' }}>
         Don't have an account? <Link to="/signup" style={{ color: '#0077cc', textDecoration: 'underline' }}>Sign Up</Link>
       </div>

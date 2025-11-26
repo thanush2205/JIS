@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from 'react-hot-toast';
 import "./index.css";
 import "./styles/LandingPage.css";
 
@@ -190,6 +191,7 @@ export default function App() {
 
   return (
     <Router>
+      <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/signup" element={<Signup />} />

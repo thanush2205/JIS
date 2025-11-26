@@ -102,5 +102,31 @@ body {
     cursor: pointer;
     font-weight: 600;
   }
+
+  /* Separator for "OR" */
+  .separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #6b7280;
+    margin: 16px 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .separator::before,
+  .separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #d1d5db;
+  }
+
+  .separator:not(:empty)::before {
+    margin-right: .5em;
+  }
+
+  .separator:not(:empty)::after {
+    margin-left: .5em;
+  }
   
   

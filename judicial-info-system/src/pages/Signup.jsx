@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
+import GoogleAuth from '../components/GoogleAuth.jsx';
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -119,6 +120,8 @@ export default function Signup() {
   {error && <div style={{ color: 'red' }}>{error}</div>}
   <button type="submit" disabled={loading}>{loading ? 'Signing up...' : 'Sign Up'}</button>
       </form>
+      <div className="separator">OR</div>
+      <GoogleAuth isSignup={true} />
 
       {showModal && (
         <div className="modal">
