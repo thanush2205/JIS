@@ -1,12 +1,14 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import { ensureJwtSecret, getJwtSecret } from '../utils/secrets.js';
 import User from '../models/User.js';
 import { verifyToken } from '../middleware/auth.js';
 import Activity from '../models/Activity.js';
 
 const router = express.Router();
+const googleClient = new OAuth2Client(process.env.VITE_GOOGLE_CLIENT_ID);
 
 // Signup
 router.post('/signup', async (req, res) => {
@@ -26,6 +28,90 @@ router.post('/signup', async (req, res) => {
     res.status(201).json({ id: user.id, email: user.email, role: user.role, fullName: user.fullName });
   } catch (err) {
   res.status(500).json({ error: err?.message || 'Signup failed' });
+  }
+});
+
+// Google Sign-In (Signup or Login)
+router.post('/auth/google', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) return res.status(400).json({ error: 'ID token required' });
+
+    // Verify the Google token
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.VITE_GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+
+    if (!email) return res.status(400).json({ error: 'Email not provided by Google' });
+
+    // Check if user already exists
+    let user = await User.findOne({ email });
+
+    if (user) {
+      // User exists - update Google ID and profile picture if not already set
+      if (!user.googleId) {
+        user.googleId = googleId;
+        user.profilePicture = picture;
+        await user.save();
+      }
+    } else {
+      // New user - create account with Google details
+      const prefix = 'U'; // Default role is User
+      const randomDigits = Math.floor(10000 + Math.random() * 90000);
+      const id = `${prefix}${randomDigits}`;
+      
+      user = await User.create({
+        fullName: name,
+        email,
+        role: 'User',
+        bio: '',
+        id,
+        googleId,
+        profilePicture: picture,
+        passwordHash: await bcrypt.hash(Math.random().toString(36), 10), // Random secure password
+      });
+
+      await Activity.create({
+        actorId: id,
+        actorRole: 'User',
+        action: 'USER_SIGNUP_GOOGLE',
+        targetType: 'User',
+        targetId: user.id,
+        details: { email },
+      });
+    }
+
+    // Generate JWT
+    ensureJwtSecret();
+    const token = jwt.sign({ sub: user.id, role: user.role }, getJwtSecret(), { expiresIn: '6h' });
+
+    // Log activity
+    try {
+      await Activity.create({
+        actorId: user.id,
+        actorRole: user.role,
+        action: 'USER_LOGIN_GOOGLE',
+        targetType: 'User',
+        targetId: user.id,
+      });
+    } catch {}
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        role: user.role,
+        fullName: user.fullName,
+        email: user.email,
+        profilePicture: user.profilePicture,
+      },
+    });
+  } catch (err) {
+    console.error('Google auth error:', err);
+    res.status(500).json({ error: err?.message || 'Google authentication failed' });
   }
 });
 
